@@ -1,9 +1,15 @@
 from rest_framework import serializers
 from watchlist.models import Movie
 
+#VALIDATORS--------------------------------------------------------------------------------------
+def name_length(value):
+     if len(value) < 2:
+        raise serializers.ValidationError("Name too Short")
+#------------------------------------------------------------------------------------------------
+
 class MovieSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField()
+    name = serializers.CharField(validators=[name_length])
     description = serializers.CharField()
     activate = serializers.BooleanField()
 
@@ -16,3 +22,19 @@ class MovieSerializer(serializers.Serializer):
         instance.activate = validated_data.get('activate',instance.activate)
         instance.save()
         return instance
+
+# FIELD LEVEL VALIDATION----------------------------------------------------------------------------
+    def validate_name(self,value):
+        if len(value) < 2:
+            raise serializers.ValidationError("Name too Short")
+        return value
+#--------------------------------------------------------------------------------------------------
+
+#----------------------------OBJECT LEVEL VALIDATION-----------------------------------------------
+    def validate(self,data):
+        if data['name'] == data['description']:
+            raise serializers.ValidationError("Title and Description can not be same")
+        return data
+#------------------------------------------------------------------------------------------------
+
+
