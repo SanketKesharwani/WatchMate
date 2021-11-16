@@ -1,7 +1,9 @@
 from watchlist.models import WatchList,StreamPlatform,Review
+from watchlist.api.permissions import AdminOrReadOnly,ReviewUserOrReadOnly
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 #from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from watchlist.api.serializers import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer
@@ -30,6 +32,14 @@ class ReviewCreate(generics.CreateAPIView):
         if review_queryset.exists():
             raise ValidationError("You have already rated this movie!")
         
+        if movie.number_rating == 0:
+            movie.avg_rating = serializer.validated_data['rating']
+        else:
+            movie.avg_rating = (movie.avg_rating + serializer.validated_data['rating'])/2
+        
+        movie.number_rating = movie.number_rating + 1
+        movie.save()
+        
         serializer.save(watchlist=movie,user_review=user_review)
     
 
@@ -37,6 +47,7 @@ class ReviewList(generics.ListCreateAPIView):
     #this queryset will return all review so if we want reviews perticular to id we need to overwrite queryset
     #queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [ReviewUserOrReadOnly]
     
     def get_queryset(self):
         pk = self.kwargs['pk']
