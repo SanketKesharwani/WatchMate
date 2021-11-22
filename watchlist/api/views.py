@@ -47,7 +47,7 @@ class ReviewList(generics.ListCreateAPIView):
     #this queryset will return all review so if we want reviews perticular to id we need to overwrite queryset
     #queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewUserOrReadOnly]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         pk = self.kwargs['pk']
